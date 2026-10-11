@@ -4,6 +4,7 @@ import {
   AUTOSAVE_DEFAULT,
   COLLAPSED_PROJECT_RAIL_MODE_DEFAULT,
   searchSettings,
+  settingsSectionLabel,
   SETTINGS_INDEX,
   settingsSectionsByGroup,
   MODEL_CONTROLS_DEFAULT,
@@ -671,5 +672,35 @@ describe("settings search", () => {
 
   it("caps the result list", () => {
     expect(searchSettings("e", 4)).toHaveLength(4);
+  });
+
+  it("finds the language setting by its English name", () => {
+    expect(searchSettings("language")[0]).toMatchObject({
+      section: "general",
+      settingId: "language",
+      label: "Interface language",
+    });
+  });
+
+  it("finds the language setting by its Chinese label", () => {
+    localStorage.setItem("monocode.language", "zh-Hans");
+    try {
+      const labels = searchSettings("语言").map((r) => r.label);
+      expect(labels).toContain("Interface language");
+      // The row reports its English label so SettingsView keeps its anchor.
+      expect(searchSettings("语言")[0].settingId).toBe("language");
+    } finally {
+      localStorage.removeItem("monocode.language");
+    }
+  });
+
+  it("localizes section labels once the language is Chinese", () => {
+    localStorage.setItem("monocode.language", "zh-Hans");
+    try {
+      expect(settingsSectionLabel("general")).toBe("通用");
+      expect(searchSettings("general")[0].sectionLabel).toBe("通用");
+    } finally {
+      localStorage.removeItem("monocode.language");
+    }
   });
 });
