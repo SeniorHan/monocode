@@ -142,7 +142,8 @@ fn apply(_app: &AppHandle, _lang: Lang) -> Result<(), String> {
     Ok(())
 }
 
-#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
+#[cfg(target_os = "macos")]
+#[tauri::command]
 pub fn keybindings_set_overrides(
     app: AppHandle,
     overrides: HashMap<String, KeybindingOverride>,
