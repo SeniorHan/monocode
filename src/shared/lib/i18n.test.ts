@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { beforeEach, expect, it, describe, vi, afterEach } from "vitest";
-import { execSync } from "node:child_process";
+import { readdirSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 import {
   currentLanguage,
   initLanguage,
@@ -205,14 +206,26 @@ describe("translationTable", () => {
     // gettext fallback would silently ship English into the Chinese UI.
     // Only a bare `t(` counts — `foo.t(` and `format(` are other functions.
     const keys = new Set<string>();
-    const source = execSync(
-      'grep -rhoE \'[^.A-Za-z0-9_]t\\("[^"]+"\\)\' src --include=*.ts --include=*.tsx --exclude=*.test.ts --exclude=*.test.tsx',
-      { cwd: process.cwd(), encoding: "utf8" },
-    );
-    for (const match of source.matchAll(/(^|[^.A-Za-z0-9_])t\("([^"]+)"\)/g)) {
-      const key = match[2];
-      if (key) keys.add(key);
-    }
+    const walk = (dir: string) => {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const path = join(dir, entry.name);
+        if (entry.isDirectory()) {
+          walk(path);
+          continue;
+        }
+        if (!/\.tsx?$/.test(entry.name) || /\.test\.tsx?$/.test(entry.name)) {
+          continue;
+        }
+        const text = readFileSync(path, "utf8");
+        for (const match of text.matchAll(
+          /(^|[^.A-Za-z0-9_])t\("([^"]+)"\)/g,
+        )) {
+          const key = match[2];
+          if (key) keys.add(key);
+        }
+      }
+    };
+    walk(join(process.cwd(), "src"));
     expect(keys.size).toBeGreaterThan(0);
     const table = translationTable("zh-Hans") ?? {};
     const missing = [...keys].filter((key) => !(key in table));
