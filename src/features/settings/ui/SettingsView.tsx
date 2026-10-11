@@ -375,6 +375,12 @@ import {
   type SettingsSectionId,
 } from "../model/settings";
 import { loadSoundsEnabled, playCue, saveSoundsEnabled } from "../model/sounds";
+import {
+  loadLanguage,
+  saveLanguage,
+  type Language,
+} from "../../../shared/lib/i18n";
+import { useT } from "../../../shared/hooks/useI18n";
 import { setQuickComposerShortcut } from "../../quick-composer/model/quickComposer";
 import {
   isGlobalShortcut,
@@ -784,6 +790,9 @@ function GeneralPage({
   const [quickComposerError, setQuickComposerError] = useState<string | null>(
     null,
   );
+  const [language, setLanguage] = useState<Language>(loadLanguage);
+  const t = useT();
+  const languageLabel = t("Interface language");
 
   // The user may flip the switch in System Settings and come back: re-read
   // the OS state whenever the window regains focus while the toggle is on.
@@ -845,8 +854,33 @@ function GeneralPage({
     setCloseToTray(next);
   };
 
+  const onLanguage = (next: Language) => {
+    saveLanguage(next);
+    setLanguage(next);
+  };
+
   return (
     <>
+      <Group title={t("Language")} description={languageLabel}>
+        <Row
+          id="language"
+          label={languageLabel}
+          description={t("Follows your system language by default.")}
+        >
+          <Segmented
+            label={languageLabel}
+            value={language}
+            optionIdPrefix="language"
+            options={[
+              { value: "auto", label: t("Auto") },
+              { value: "en", label: t("English") },
+              { value: "zh-Hans", label: t("Simplified Chinese") },
+            ]}
+            onChange={onLanguage}
+          />
+        </Row>
+      </Group>
+
       <Group
         title="Alerts"
         description="How MonoCode reaches you while you are looking somewhere else."

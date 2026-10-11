@@ -14,6 +14,7 @@ import {
   shortcutTokens,
 } from "../../quick-composer/model/quickComposerShortcut";
 import { readFlag, writeFlag } from "./storageFlags";
+import { t } from "../../../shared/lib/i18n";
 
 const SECTION_KEY = "monocode.settingsSection";
 
@@ -209,6 +210,12 @@ export const SETTINGS_INDEX: SettingsEntry[] = [
     section: "worktrees",
     label: "Project worktrees",
     keywords: "git branch working copy create delete manage",
+  },
+  {
+    id: "language",
+    section: "general",
+    label: "Interface language",
+    keywords: "language locale chinese english simplified 界面语言 中文 简体",
   },
   {
     id: "update",
@@ -519,7 +526,10 @@ export function searchSettings(
   const scored: { score: number; result: SettingsSearchResult }[] = [];
 
   for (const entry of SETTINGS_INDEX) {
-    const score = matchScore(needle, entry.label, entry.keywords);
+    // Match the localized label as well as the English one, so a Chinese user
+    // can type 语言 and still find the row.
+    const labels = `${entry.label} ${t(entry.label)}`;
+    const score = matchScore(needle, labels, entry.keywords);
     if (score == null) continue;
     scored.push({
       score,
@@ -535,17 +545,17 @@ export function searchSettings(
   for (const section of SETTINGS_SECTIONS) {
     const score = matchScore(
       needle,
-      section.label,
-      `${section.description} ${section.keywords ?? ""}`,
+      `${section.label} ${t(section.label)}`,
+      `${section.description} ${t(section.description)} ${section.keywords ?? ""}`,
     );
     if (score == null) continue;
     scored.push({
       score: score + 0.5,
       result: {
         section: section.id,
-        sectionLabel: section.label,
+        sectionLabel: settingsSectionLabel(section.id),
         settingId: null,
-        label: section.label,
+        label: t(section.label),
       },
     });
   }
@@ -568,15 +578,15 @@ export function isSettingsSectionId(
 }
 
 export function settingsSectionLabel(id: SettingsSectionId): string {
-  return (
-    SETTINGS_SECTIONS.find((section) => section.id === id)?.label ?? "General"
-  );
+  const label =
+    SETTINGS_SECTIONS.find((section) => section.id === id)?.label ?? "General";
+  return t(label);
 }
 
 export function settingsSectionDescription(id: SettingsSectionId): string {
-  return (
-    SETTINGS_SECTIONS.find((section) => section.id === id)?.description ?? ""
-  );
+  const description =
+    SETTINGS_SECTIONS.find((section) => section.id === id)?.description ?? "";
+  return t(description);
 }
 
 export function loadSettingsSection(): SettingsSectionId {

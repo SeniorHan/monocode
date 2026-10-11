@@ -7,6 +7,7 @@ import {
   initAppearance,
 } from "./features/settings/model/appearance";
 import { initSounds } from "./features/settings/model/sounds";
+import { initLanguage } from "./shared/lib/i18n";
 import {
   abortQuit,
   askQuitConfirmation,
@@ -27,6 +28,7 @@ performance.mark("monocode:bootstrap");
 const appLoaded = import("./app/App");
 
 initAppearance();
+initLanguage();
 initSounds();
 // Prime the real home directory before the first render so every `~/` file
 // reference resolves consistently. The IPC call is local and failures remain

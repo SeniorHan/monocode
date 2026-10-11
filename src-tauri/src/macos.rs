@@ -661,7 +661,9 @@ pub(crate) fn request_badge_authorization() {
     center.getNotificationSettingsWithCompletionHandler(&handler);
 }
 
-pub(crate) fn install_dock_menu(app: &AppHandle) {
+pub(crate) fn install_dock_menu(app: &AppHandle, lang: crate::menu_language::Lang) {
+    use crate::menu_language::labels;
+
     let Some(mtm) = MainThreadMarker::new() else {
         return;
     };
@@ -676,7 +678,7 @@ pub(crate) fn install_dock_menu(app: &AppHandle) {
     let item = unsafe {
         NSMenuItem::initWithTitle_action_keyEquivalent(
             NSMenuItem::alloc(mtm),
-            &NSString::from_str("New Window"),
+            &NSString::from_str(labels(lang).new_window_dock),
             Some(sel!(newWindow:)),
             &NSString::new(),
         )

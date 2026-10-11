@@ -28,6 +28,7 @@ mod macos;
 mod macos_background;
 mod mcp;
 mod menu;
+mod menu_language;
 mod mono;
 #[cfg(target_os = "macos")]
 mod mono_chat;
@@ -257,6 +258,8 @@ pub fn run() {
         .manage(pty::PtyHost::new())
         .manage(remote::RemoteConnections::default())
         .manage(window_transfer::WindowTransferState::new())
+        .manage(menu::MenuLanguage::default())
+        .manage(menu::MenuKeybindings::default())
         .setup(|app| {
             harness::reap_orphaned_harness_processes();
             session_store::init(app.handle())?;
@@ -270,7 +273,7 @@ pub fn run() {
             {
                 quick_composer::init(app.handle())?;
                 mono_chat::init(app.handle())?;
-                macos::install_dock_menu(app.handle());
+                macos::install_dock_menu(app.handle(), menu::language(app.handle()));
                 if let Some(window) = app.get_webview_window("main") {
                     macos::install(&window);
                 }
@@ -545,6 +548,8 @@ pub fn run() {
             set_trackpad_zoom_enabled,
             #[cfg(target_os = "macos")]
             menu::keybindings_set_overrides,
+            #[cfg(target_os = "macos")]
+            menu::set_menu_language,
             #[cfg(target_os = "macos")]
             menu::autosave_set_enabled,
             open_new_window,
